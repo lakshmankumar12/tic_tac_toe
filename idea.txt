@@ -1,4 +1,49 @@
-We will build a tree of all possible tic-tac-toe moves.
-Then we will check for a given move what is the next best move.
+This is perhaps a very lousy implementation of tic-tac-toe. Anyway my first attempt
+and here is how it goes..
 
-At this point, lets just buid the tree of all moves.
+* Board is represented as a list of size 9, with each index as a square..
+
+    0 | 1 | 2
+   ---+---+---
+    3 | 4 | 5
+   ---+---+---
+    6 | 7 | 8
+
+* Board is initially empty - List is full of None's on all 9 indices. The first
+  player is represented with 0 and second player is represented with 1. As game
+  progresses, the list is filled with 0's and 1's.
+
+* The game is also tracked with a move-list - That represents the squares chosen
+  alternatively by each player. Eg:
+
+    [ 2, 4, 6, 7, 8 ]
+
+  represents a game where player 1 chose square-2, then player 2 chose 4, player-1
+  chose 6, player-2 chose 7 and player-1 chose 8. It now player'2 turn to play.
+  Give the move list , we can easily construct the board at this point.. Player-1
+  is shown with 'o' and player-2 with 'x'
+
+      |   | o
+   ---+---+---
+      | x |
+   ---+---+---
+    o | x | o
+
+* Each line to win is referred as a stroke(for lack of a better name!).
+  There are 3 horizontal strokes - (0,1,2), (3,4,5), (6,7,8)
+            3 vertical   strokes - (0,3,6), (1,4,7), (2,5,8)
+            2 diagnol    strokes - (0,4,8), (2,4,6)
+
+* Computer's logic to play
+
+  * check if a win is imminent. If yes, just pick the winning square.
+  * check if a opponent's win is imminent, then pick the square to prevent the victory
+  * Now, the tough part - pick a best square on our way to victory..
+    This is accomplished by pre-building a tree of all winning moves for both
+    player-0 and player-1. At each node, we store the number of possible winning
+    moves for either player, and when its time to play a move, the algorithm just
+    walks this tree and chooses a square that has the highest count for the role
+    its playing.
+
+
+

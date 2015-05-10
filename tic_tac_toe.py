@@ -23,6 +23,9 @@ def is_board_won(board):
   return 0
 
 def next_move(board, moves_so_far, winning_moves, move_no, who):
+  ''' Given a moves_so_far and the player to play next(who)
+      it adds to the moves and if a game is over at this point,
+      it updates the winning moves '''
   if move_no >= 9:
     return
   indent=" "*move_no
