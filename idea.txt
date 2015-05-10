@@ -1,0 +1,4 @@
+We will build a tree of all possible tic-tac-toe moves.
+Then we will check for a given move what is the next best move.
+
+At this point, lets just buid the tree of all moves.
