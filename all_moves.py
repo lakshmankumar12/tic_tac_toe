@@ -3,13 +3,9 @@
 import os
 import sys
 
-#debugAllMovesfd=open("debug_all_moves.txt","w")
-debugWinMovesfd=open("debug_win_moves.txt","w")
-debugWinProbTreefd=open("debug_win_prob_tree.txt","w")
-
 def build_board_strokes(board_strokes):
   # 3 horizontal
-  for i in range(3): board_strokes.append((i,i+1,i+2))
+  for i in range(3): board_strokes.append((i*3,i*3+1,i*3+2))
   # 3 horizontal
   for i in range(3): board_strokes.append((i,i+3,i+6))
   # top-left diagnol
@@ -26,45 +22,16 @@ def is_board_won(board):
       return 1
   return 0
 
-discard ='''
-  for i in range(3):
-    this_row = i*3;
-    if board[this_row+0] != None and \
-        board[this_row+0] == board[this_row+1] and \
-        board[this_row+1] == board[this_row+2]:
-      return 1
-  # check the 3 columns
-  for i in range(3):
-    this_column = i
-    if board[this_column+0] != None and \
-        board[this_column+0] == board[this_column+3] and \
-        board[this_column+3] == board[this_column+6]:
-      return 1
-  # check the top-left start diagnol
-  if board[0] != None and \
-      board[0] == board[4] and \
-      board[4] == board[8]:
-    return 1
-  # check the top-right start diagnol
-  if board[2] != None and \
-      board[2] == board[4] and \
-      board[4] == board[6]:
-    return 1
-  return 0
-'''
-
 def next_move(board, moves_so_far, winning_moves, move_no, who):
   if move_no >= 9:
     return
   indent=" "*move_no
-  #debugAllMovesfd.write('%sNext Move: %d, Board: %s, who: %d\n'%(indent, move_no, board, who))
   for i in range(9):
     if board[i] == None:
       moves_so_far.append(i)
       board[i] = who
       if is_board_won(board):
         winning_moves[who].append(moves_so_far[:])
-        debugWinMovesfd.write('Who: %d, Moves :%s, Board: %s\n'%(who, moves_so_far, board))
       else:
         next_move(board, moves_so_far, winning_moves, move_no+1, 1-who)
       moves_so_far.pop()
@@ -79,9 +46,7 @@ class WinProbTreeNode:
     self.nextMoves = [None]*9
     WinProbTreeNode.TotCreated += 1
 
-
 def build_win_prob_tree(RootNode, winning_moves, who):
-
   # This can optimize later as we are re-walking the tree
   # from nodes for every move!
   for one_win in winning_moves:
@@ -114,14 +79,9 @@ moves_so_far=[]
 winning_moves=[[],[]]
 
 next_move(board, moves_so_far, winning_moves, 0, 0)
-print "Total winning moves for 0:%d"%len(winning_moves[0])
-print "Total winning moves for 1:%d"%len(winning_moves[1])
 RootNode = WinProbTreeNode(0)
 build_win_prob_tree(RootNode, winning_moves[0], 0)
 build_win_prob_tree(RootNode, winning_moves[1], 1)
-
-print "Total nodes created:%d"%WinProbTreeNode.TotCreated
-print_win_prob_tree(debugWinProbTreefd, RootNode)
 
 def get_user_choice():
   which_user=int(raw_input("Which user do you want to play(0/1):"))
@@ -149,14 +109,36 @@ def draw_board(board):
       tuple(print_list)
 
 def is_pattern_imminent(moves, board, who_to_win):
+  for stroke in board_strokes:
+    nones = 0
+    first = None
+    same = 0
+    none_position = -1
+    this_stroke = [board[i] for i in stroke ]
+    for i in range(2,-1,-1):
+      a = this_stroke.pop()
+      if a == None:
+        nones += 1
+        none_position = i
+      elif first == None:
+        first = a
+      elif first == a and first == who_to_win:
+        same = 1
+    if nones == 1 and same == 1:
+      #ah!imminent
+      return stroke[none_position]
   return -1
 
 def get_computer_move(moves, board, who_to_win):
   curr_node = RootNode
-  print "Moves so far:%s"%moves
+
+  # Lets choose a winning move
+  move = is_pattern_imminent(moves, board, who_to_win)
+  if move != -1:
+    return move
 
   # Lets break an imminent pattern
-  move = is_pattern_imminent(moves, board, who_to_win)
+  move = is_pattern_imminent(moves, board, 1-who_to_win)
   if move != -1:
     return move
 
@@ -189,7 +171,7 @@ for i in range(9):
     board[move] = human
   else:
     move = get_computer_move(moves, board, computer)
-    print "Got computer move of %d"%move
+    print "I played a move of %d"%move
     if move == -1:
       print "Its going to be a tie"
       sys.exit(1)
