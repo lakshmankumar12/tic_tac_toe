@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import os
 import sys
 
 def build_board_strokes(board_strokes):
@@ -81,13 +80,16 @@ build_board_strokes(board_strokes)
 moves_so_far=[]
 winning_moves=[[],[]]
 
+print "building moves..",
+sys.stdout.flush()
 next_move(board, moves_so_far, winning_moves, 0, 0)
 RootNode = WinProbTreeNode(0)
 build_win_prob_tree(RootNode, winning_moves[0], 0)
 build_win_prob_tree(RootNode, winning_moves[1], 1)
+print "done"
 
 def get_user_choice():
-  which_user=int(raw_input("Which user do you want to play(0/1):"))
+  which_user=int(raw_input("Which user do you want to play .. (first:0/second:1):"))
   if not which_user in [0,1]:
     print "Sorry.. choose only 0 or 1. You chose %d"%which_user
     sys.exit(1)
@@ -153,42 +155,40 @@ def get_computer_move(moves, board, who_to_win):
   if curr_node == None:
     return -1
   my_max = (-1,-1)
-  opp_max = (-1,-1)
   for i in range(0,9):
     if curr_node.nextMoves[i] != None:
       if curr_node.nextMoves[i].counts[who_to_win] > my_max[1]:
         my_max = (i, curr_node.nextMoves[i].counts[who_to_win])
-      if curr_node.nextMoves[i].counts[1-who_to_win] > opp_max[1]:
-        opp_max = (i, curr_node.nextMoves[i].counts[1-who_to_win])
   return my_max[0]
 
-board = [None]*9
-moves=[]
-human = get_user_choice()
-computer = 1 - human
-is_human_turn = 1 - human
-for i in range(9):
-  draw_board(board)
-  if is_human_turn:
-    move = get_move_choice(board)
-    board[move] = human
-  else:
-    move = get_computer_move(moves, board, computer)
-    print "I played a move of %d"%move
-    if move == -1:
-      print "Its going to be a tie"
-      sys.exit(1)
-    board[move] = computer
-  moves.append(move)
-  won = is_board_won(board)
-  if won:
-    if is_human_turn:
-      print "You win!"
-    else:
-      print "I win!"
+while True:
+  print "Starting game.."
+  board = [None]*9
+  moves=[]
+  human = get_user_choice()
+  computer = 1 - human
+  is_human_turn = 1 - human
+  for i in range(9):
     draw_board(board)
-    sys.exit(0)
-  is_human_turn = 1 - is_human_turn
-
-print "Tie.."
+    if is_human_turn:
+      move = get_move_choice(board)
+      board[move] = human
+    else:
+      move = get_computer_move(moves, board, computer)
+      print "I played a move of %d"%move
+      if move == -1:
+        print "Its going to be a tie"
+        break
+      board[move] = computer
+    moves.append(move)
+    won = is_board_won(board)
+    if won:
+      if is_human_turn:
+        print "You win!"
+      else:
+        print "I win!"
+      draw_board(board)
+      break
+    is_human_turn = 1 - is_human_turn
+  print "Tie.."
 
